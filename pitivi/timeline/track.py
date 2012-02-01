@@ -577,12 +577,11 @@ class TrackTransition(TrackObject):
     """
     def __init__(self, instance, element, track, timeline, utrack):
         TrackObject.__init__(self, instance, element, track, timeline, utrack)
-        for thing in (self.bg, self.name):
-            self.add_child(thing)
+        for thing in (self.bg, self._selec_indic, self.namebg, self.name):
+                self.add_child(thing)
 
     def _setElement(self, element):
-        # FIXME: add the transition name as the label
-        pass
+        self.name.props.text = element.get_transition_type().value_nick
 
     def _getColor(self):
         # Transitions are bright blue, independent of the user color settings
