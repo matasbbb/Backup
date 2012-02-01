@@ -544,6 +544,10 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
 
     def selectedChangedCb(self, element, selected):
         if element.selected:
+            if isinstance(self, TrackTransition):
+                trans = self.element.get_transition_type()
+                #self.app.gui.transitions.activate(trans)
+                print "Configure transition", trans.numerator, "(" + trans.value_name + ")"
             self._selec_indic.props.visibility = goocanvas.ITEM_VISIBLE
         else:
             self._selec_indic.props.visibility = goocanvas.ITEM_INVISIBLE
