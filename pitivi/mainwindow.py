@@ -40,6 +40,7 @@ from pitivi.utils.loggable import Loggable
 from pitivi.utils.misc import in_devel
 from pitivi.settings import GlobalSettings
 from pitivi.effects import EffectListWidget
+from pitivi.transitions import TransitionsListWidget
 from pitivi.medialibrary import MediaLibraryWidget, MediaLibraryError
 
 from pitivi.utils.misc import show_user_manual
@@ -405,8 +406,11 @@ class PitiviMainWindow(gtk.Window, Loggable):
         # Second set of tabs
         self.context_tabs = BaseTabs(instance, True)
         self.clipconfig = ClipProperties(instance, self.uimanager)
+        self.trans_list = TransitionsListWidget(instance, self.uimanager)
         self.context_tabs.append_page(self.clipconfig, gtk.Label(_("Clip configuration")))
+        self.context_tabs.append_page(self.trans_list, gtk.Label(_("Transitions")))
         self.clipconfig.show()
+        self.trans_list.show()
 
         self.secondhpaned.pack2(self.context_tabs, resize=True, shrink=False)
         self.context_tabs.show()
