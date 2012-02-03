@@ -52,6 +52,8 @@ class TransitionsListWidget(gtk.VBox, Loggable):
 
         self.app = instance
         self._pixdir = os.path.join(get_pixmap_dir(), "transitions")
+        icon_theme = gtk.icon_theme_get_default()
+        self._question_icon = icon_theme.load_icon("dialog-question", 48, 0)
 
         #Tooltip handling
         self._current_transition_name = None
@@ -167,8 +169,7 @@ class TransitionsListWidget(gtk.VBox, Loggable):
             icon = gtk.gdk.pixbuf_new_from_file(os.path.join(self._pixdir, name))
         except:
             try:
-                icon = gtk.gdk.pixbuf_new_from_file(os.path.join(self._pixdir,
-                    "defaultthumbnail.svg"))
+                icon = self._question_icon
             except:
                 icon = None
         return icon
