@@ -155,7 +155,9 @@ class TransitionsListWidget(gtk.VBox, Loggable):
         model = self.iconview.get_model()
         for row in model:
             if int(transition.numerator) == int(row[COL_TRANSITION_ID]):
-                self.iconview.select_path(model.get_path(row.iter))
+                path = model.get_path(row.iter)
+                self.iconview.select_path(path)
+                self.iconview.scroll_to_path(path, False, 0, 0)
 
     def deactivate(self):
         """
