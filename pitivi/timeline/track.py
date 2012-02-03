@@ -547,11 +547,12 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
             if isinstance(self, TrackTransition):
                 try:
                     trans = self.element.get_transition_type()
-                    #self.app.gui.transitions.activate(trans)
-                    print "Configure transition", trans.numerator, "(" + trans.value_name + ")"
+                    self.app.gui.trans_list.activate(trans)
                 except AttributeError:
                     # TrackAudioTransition objects do not have a transition type
-                    pass
+                    self.app.gui.trans_list.deactivate()
+            else:
+                self.app.gui.trans_list.deactivate()
             self._selec_indic.props.visibility = goocanvas.ITEM_VISIBLE
         else:
             self._selec_indic.props.visibility = goocanvas.ITEM_INVISIBLE
