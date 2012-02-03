@@ -553,6 +553,7 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
                     self.app.gui.trans_list.deactivate()
             else:
                 self.app.gui.trans_list.deactivate()
+                self.app.gui.switchContextTab()
             self._selec_indic.props.visibility = goocanvas.ITEM_VISIBLE
         else:
             self._selec_indic.props.visibility = goocanvas.ITEM_INVISIBLE
