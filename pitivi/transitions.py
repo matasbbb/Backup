@@ -145,17 +145,22 @@ class TransitionsListWidget(gtk.VBox, Loggable):
 
 #            self.storemodel.set_sort_column_id(COL_NAME_TEXT, gtk.SORT_ASCENDING)
 
-    def activate(self, timeline_object):
+    def activate(self, transition):
         """
         Hide the infobar and make the transitions UI sensitive.
         """
         self.iconview.set_sensitive(True)
         self.infobar.hide()
+        model = self.iconview.get_model()
+        for row in model:
+            if int(transition.numerator) == int(row[COL_TRANSITION_ID]):
+                self.iconview.select_path(model.get_path(row.iter))
 
     def deactivate(self):
         """
         Show the infobar and make the transitions UI insensitive.
         """
+        self.iconview.unselect_all()
         self.iconview.set_sensitive(False)
         self.infobar.show()
 
