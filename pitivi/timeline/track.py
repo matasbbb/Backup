@@ -545,9 +545,13 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
     def selectedChangedCb(self, element, selected):
         if element.selected:
             if isinstance(self, TrackTransition):
-                trans = self.element.get_transition_type()
-                #self.app.gui.transitions.activate(trans)
-                print "Configure transition", trans.numerator, "(" + trans.value_name + ")"
+                try:
+                    trans = self.element.get_transition_type()
+                    #self.app.gui.transitions.activate(trans)
+                    print "Configure transition", trans.numerator, "(" + trans.value_name + ")"
+                except AttributeError:
+                    # TrackAudioTransition objects do not have a transition type
+                    pass
             self._selec_indic.props.visibility = goocanvas.ITEM_VISIBLE
         else:
             self._selec_indic.props.visibility = goocanvas.ITEM_INVISIBLE
@@ -604,7 +608,11 @@ class TrackTransition(TrackObject):
                 self.add_child(thing)
 
     def _setElement(self, element):
-        self.name.props.text = element.get_transition_type().value_nick
+        try:
+            self.name.props.text = element.get_transition_type().value_nick
+        except AttributeError:
+            # TrackAudioTransition objects do not have a transition type
+            pass
 
     def _getColor(self):
         # Transitions are bright blue, independent of the user color settings
