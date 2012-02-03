@@ -33,7 +33,7 @@ from xml.sax.saxutils import escape
 
 from pitivi.configure import get_pixmap_dir
 from pitivi.utils.loggable import Loggable
-from pitivi.utils.ui import SPACING
+from pitivi.utils.ui import SPACING, PADDING
 
 (COL_TRANSITION_ID,
  COL_NAME_TEXT,
@@ -67,6 +67,19 @@ class TransitionsListWidget(gtk.VBox, Loggable):
 #        hsearch.pack_start(searchStr, expand=False)
 #        hsearch.pack_end(self.searchEntry, expand=True)
 
+        self.infobar = gtk.InfoBar()
+        txtlabel = gtk.Label()
+        txtlabel.set_padding(PADDING, PADDING)
+        txtlabel.set_line_wrap(True)
+        txtlabel.set_line_wrap_mode(pango.WRAP_WORD)
+        txtlabel.set_justify(gtk.JUSTIFY_CENTER)
+        txtlabel.set_text(
+            _("Create a transition by overlapping two adjacent clips on the "
+                "same layer. Click the transition on the timeline to change "
+                "the transition type."))
+        self.infobar.add(txtlabel)
+        self.infobar.show_all()
+
         self.storemodel = gtk.ListStore(str, str, str, gtk.gdk.Pixbuf)
 
         self.iconview_scrollwin = gtk.ScrolledWindow()
@@ -91,6 +104,7 @@ class TransitionsListWidget(gtk.VBox, Loggable):
         gobject.idle_add(self._loadAvailableTransitionsCb)
 
 #        self.pack_start(hsearch, expand=False)
+        self.pack_start(self.infobar, expand=False)
         self.pack_end(self.iconview_scrollwin, expand=True)
 
         #create the filterModel
@@ -134,12 +148,14 @@ class TransitionsListWidget(gtk.VBox, Loggable):
         Hide the infobar and make the transitions UI sensitive.
         """
         self.iconview.set_sensitive(True)
+        self.infobar.hide()
 
     def deactivate(self):
         """
         Show the infobar and make the transitions UI insensitive.
         """
         self.iconview.set_sensitive(False)
+        self.infobar.show()
 
     def _getIcon(self, transition_nick):
         """
