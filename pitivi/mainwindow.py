@@ -472,6 +472,26 @@ class PitiviMainWindow(gtk.Window, Loggable):
         os.environ["PULSE_PROP_media.role"] = "production"
         os.environ["PULSE_PROP_application.icon_name"] = "pitivi"
 
+    def switchContextTab(self, tab=None):
+        """
+        Switch the tab being displayed on the second set of tabs,
+        depending on the context.
+
+        @param the name of the tab to switch to, or None to reset
+        """
+        if not tab:
+            page = 0
+        else:
+            tab = tab.lower()
+            if tab == "clip configuration":
+                page = 0
+            elif tab == "transitions":
+                page = 1
+            else:
+                self.debug("Invalid context tab switch requested")
+                return False
+        self.context_tabs.set_current_page(page)
+
     def setFullScreen(self, fullscreen):
         """ Toggle the fullscreen mode of the application """
         if fullscreen:
