@@ -22,6 +22,7 @@
 
 # TODO: cleanup ces imports
 import gst
+import ges
 import gtk
 import os
 import gobject
@@ -34,11 +35,10 @@ from pitivi.configure import get_pixmap_dir
 from pitivi.utils.loggable import Loggable
 from pitivi.utils.ui import SPACING
 
-(COL_NAME_TEXT,
+(COL_TRANSITION_ID,
+ COL_NAME_TEXT,
  COL_DESC_TEXT,
- COL_TRANSITION_TYPE,
- COL_TRANSITION_ID,
- COL_ICON) = range(5)
+ COL_ICON) = range(4)
 
 
 class TransitionsListWidget(gtk.VBox, Loggable):
@@ -51,6 +51,7 @@ class TransitionsListWidget(gtk.VBox, Loggable):
         Loggable.__init__(self)
 
         self.app = instance
+        self._pixdir = os.path.join(get_pixmap_dir(), "transitions")
 
         #Tooltip handling
         self._current_transition_name = None
@@ -66,7 +67,7 @@ class TransitionsListWidget(gtk.VBox, Loggable):
 #        hsearch.pack_start(searchStr, expand=False)
 #        hsearch.pack_end(self.searchEntry, expand=True)
 
-        self.storemodel = gtk.ListStore(str, str, str, str, gtk.gdk.Pixbuf)
+        self.storemodel = gtk.ListStore(str, str, str, gtk.gdk.Pixbuf)
 
         self.iconview_scrollwin = gtk.ScrolledWindow()
         self.iconview_scrollwin.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
@@ -103,13 +104,44 @@ class TransitionsListWidget(gtk.VBox, Loggable):
         """
         Get the list of transitions from GES and load the associated thumbnails.
         """
-        for transition in ges_transition_enum_items:  # TODO
-            self.storemodel.append([transition.value_nick,
-                                     transition.value_name,
-                                     transitionType,
-                                     transition.numerator,
-                                     self._getIcon(transition.value_nick)])
-            self.storemodel.set_sort_column_id(COL_NAME_TEXT, gtk.SORT_ASCENDING)
+        # TODO: rewrite this method when GESRegistry exists
+        self.available_transitions = []
+        # GES currently has transitions IDs up to 512
+        # Number 0 means "no transition", so we might just as well skip it.
+        for i in range(1, 513):
+            try:
+                transition = ges.VideoStandardTransitionType(i)
+            except ValueError:
+                # We hit a gap in the enum
+                pass
+            else:
+                self.available_transitions.append(\
+                    [transition.numerator,
+                    transition.value_nick,
+                    transition.value_name])
+                self.storemodel.append(\
+                    [transition.numerator,
+                    transition.value_nick,
+                    transition.value_name,
+                    self._getIcon(transition.value_nick)])
+
+#            self.storemodel.set_sort_column_id(COL_NAME_TEXT, gtk.SORT_ASCENDING)
+
+    def _getIcon(self, transition_nick):
+        """
+        If available, return an icon pixbuf for a given transition nickname.
+        """
+        name = transition_nick + ".png"
+        icon = None
+        try:
+            icon = gtk.gdk.pixbuf_new_from_file(os.path.join(self._pixdir, name))
+        except:
+            try:
+                icon = gtk.gdk.pixbuf_new_from_file(os.path.join(self._pixdir,
+                    "defaultthumbnail.svg"))
+            except:
+                icon = None
+        return icon
 
     def _buttonReleaseCb(self, view, event):
         if event.button == 1:
