@@ -97,8 +97,10 @@ class TransitionsListWidget(gtk.VBox, Loggable):
         self.modelFilter = self.storemodel.filter_new()
 #        self.modelFilter.set_visible_func(self._setRowVisible, data=None)
         self.iconview.set_model(self.modelFilter)
-
+        self.iconview_scrollwin.show_all()
 #        hsearch.show_all()
+
+        self.deactivate()
 
     def _loadAvailableTransitionsCb(self):
         """
@@ -126,6 +128,18 @@ class TransitionsListWidget(gtk.VBox, Loggable):
                     self._getIcon(transition.value_nick)])
 
 #            self.storemodel.set_sort_column_id(COL_NAME_TEXT, gtk.SORT_ASCENDING)
+
+    def activate(self, timeline_object):
+        """
+        Hide the infobar and make the transitions UI sensitive.
+        """
+        self.iconview.set_sensitive(True)
+
+    def deactivate(self):
+        """
+        Show the infobar and make the transitions UI insensitive.
+        """
+        self.iconview.set_sensitive(False)
 
     def _getIcon(self, transition_nick):
         """
