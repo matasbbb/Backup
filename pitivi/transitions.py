@@ -208,8 +208,7 @@ class TransitionsListWidget(gtk.VBox, Loggable):
 
     def getSelectedItem(self):
         path = self.iconview.get_selected_items()
-        path = self.modelFilter.convert_path_to_child_path(path[0])
-        return self.storemodel[path][COL_TRANSITION_ID]
+        return self.storemodel[path[0]][COL_TRANSITION_ID]
 
 #    def searchEntryChangedCb(self, entry):
 #        self.modelFilter.refilter()
