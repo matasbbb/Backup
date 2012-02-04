@@ -149,7 +149,6 @@ class TransitionsListWidget(gtk.VBox, Loggable):
         """
         Hide the infobar and make the transitions UI sensitive.
         """
-        self.app.gui.switchContextTab("transitions")
         self.iconview.set_sensitive(True)
         self.infobar.hide()
         model = self.iconview.get_model()
@@ -158,6 +157,7 @@ class TransitionsListWidget(gtk.VBox, Loggable):
                 path = model.get_path(row.iter)
                 self.iconview.select_path(path)
                 self.iconview.scroll_to_path(path, False, 0, 0)
+        self.app.gui.switchContextTab("transitions")
 
     def deactivate(self):
         """
