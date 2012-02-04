@@ -398,6 +398,7 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
 
         self.settings = instance.settings
         self.unfocus()
+        self.app.gui.trans_list.connect("transition-changed", self._changeTransitionCb)
 
 ## Properties
 
@@ -457,6 +458,9 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
 
     def zoomChanged(self):
         self._update()
+
+    def _changeTransitionCb(self, transition_id):
+        print "change transition", transition_id
 
 ## settings signals
 
