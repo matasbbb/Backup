@@ -33,6 +33,7 @@ from xml.sax.saxutils import escape
 
 from pitivi.configure import get_pixmap_dir
 from pitivi.utils.loggable import Loggable
+from pitivi.utils.signal import Signallable
 from pitivi.utils.ui import SPACING, PADDING
 
 (COL_TRANSITION_ID,
@@ -41,14 +42,22 @@ from pitivi.utils.ui import SPACING, PADDING
  COL_ICON) = range(4)
 
 
-class TransitionsListWidget(gtk.VBox, Loggable):
+class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
     """
     Widget for listing and selecting transitions
+
+    Signals:
+     - C{transition-changed} : A transition type has been selected
     """
+
+    __signals__ = {
+        "transition-changed": ["transition_id"],
+        }
 
     def __init__(self, instance, uiman):
         gtk.VBox.__init__(self)
         Loggable.__init__(self)
+        Signallable.__init__(self)
 
         self.app = instance
         self._pixdir = os.path.join(get_pixmap_dir(), "transitions")
@@ -185,6 +194,8 @@ class TransitionsListWidget(gtk.VBox, Loggable):
     def _buttonReleaseCb(self, view, event):
         if event.button == 1:
             transition_id = self.getSelectedItem()
+            self.debug("New transition type selected: %d" % int(transition_id))
+            self.emit("transition-changed", transition_id)
         return True
 
     def _queryTooltipCb(self, view, x, y, keyboard_mode, tooltip):
