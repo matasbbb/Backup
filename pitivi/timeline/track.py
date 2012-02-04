@@ -546,6 +546,10 @@ class TrackObject(View, goocanvas.Group, Zoomable):
                 self.app.gui.switchContextTab()
             self._selec_indic.props.visibility = goocanvas.ITEM_VISIBLE
         else:
+            # FIXME GES: in theory this SHOULD work, but half of the time
+            # when you switch from selecting one clip to another,
+            # you hit this else clause (you should not)
+            #self.app.gui.trans_list.deactivate()
             self._selec_indic.props.visibility = goocanvas.ITEM_INVISIBLE
 
     def _update(self):
