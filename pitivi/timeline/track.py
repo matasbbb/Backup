@@ -398,7 +398,6 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
 
         self.settings = instance.settings
         self.unfocus()
-        self.app.gui.trans_list.connect("transition-changed", self._changeTransitionCb)
 
 ## Properties
 
@@ -459,8 +458,12 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
     def zoomChanged(self):
         self._update()
 
-    def _changeTransitionCb(self, transition_id):
-        print "change transition", transition_id
+    def _changeTransitionCb(self, unused_widget, transition_id):
+        try:
+            self.element.set_transition_type(int(transition_id))
+        except AttributeError:
+            # TrackAudioTransition objects do not have a transition type
+            pass
 
 ## settings signals
 
@@ -616,6 +619,7 @@ class TrackTransition(TrackObject):
         TrackObject.__init__(self, instance, element, track, timeline, utrack)
         for thing in (self.bg, self._selec_indic, self.namebg, self.name):
                 self.add_child(thing)
+        instance.gui.trans_list.connect("transition-changed", self._changeTransitionCb)
 
     def _setElement(self, element):
         try:
