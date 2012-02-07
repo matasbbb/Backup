@@ -132,7 +132,7 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
         Get the list of transitions from GES and load the associated thumbnails.
         """
         # TODO: rewrite this method when GESRegistry exists
-        self.available_transitions = []
+        self.available_transitions = {}
         # GES currently has transitions IDs up to 512
         # Number 0 means "no transition", so we might just as well skip it.
         for i in range(1, 513):
@@ -142,10 +142,7 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
                 # We hit a gap in the enum
                 pass
             else:
-                self.available_transitions.append(\
-                    [transition.numerator,
-                    transition.value_nick,
-                    transition.value_name])
+                self.available_transitions[transition.numerator] = transition
                 self.storemodel.append(\
                     [transition.numerator,
                     transition.value_nick,
@@ -193,9 +190,10 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
 
     def _buttonReleaseCb(self, view, event):
         if event.button == 1:
-            transition_id = self.getSelectedItem()
-            self.debug("New transition type selected: %d" % int(transition_id))
-            self.emit("transition-changed", transition_id)
+            transition_id = int(self.getSelectedItem())
+            transition = self.available_transitions.get(transition_id)
+            self.debug("New transition type selected: %s" % transition)
+            self.emit("transition-changed", transition)
         return True
 
     def _queryTooltipCb(self, view, x, y, keyboard_mode, tooltip):

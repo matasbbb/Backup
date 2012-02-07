@@ -448,9 +448,11 @@ class TrackObject(View, goocanvas.Group, Zoomable):
     def zoomChanged(self):
         self._update()
 
-    def _changeTransitionCb(self, unused_widget, transition_id):
+    def _changeTransitionCb(self, unused_widget, transition):
         try:
-            self.element.set_transition_type(int(transition_id))
+            epic_win = self.element.set_transition_type(transition)
+            if not epic_win:
+                print "%s, \033[1m Y U NO WORK!?\033[0m" % transition
             self._view.app.current.seeker.flush()
         except AttributeError:
             # TrackAudioTransition objects do not have a transition type
