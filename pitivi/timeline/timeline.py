@@ -980,6 +980,14 @@ class Timeline(gtk.Table, Loggable, Zoomable):
             id = src.connect("track-object-added", self._trackObjectsCreatedCb, src, x, y)
             self._creating_tckobjs_sigid[src] = id
 
+    def _reallyRecreate(self, x, y):
+        self._move_temp_source(self.hadj.props.value + x, y)
+        self.selected = self._temp_objects
+        self._project.emit("selected-changed", set(self.selected))
+        self._move_context.finish()
+        self._temp_objects = []
+        self.added = 1
+
     def _trackObjectsCreatedCb(self, unused_tl, track_object, tlobj, x, y):
         # Make sure not to start the moving process before the TrackObject-s
         # are created. We concider that the time between the different
@@ -992,12 +1000,7 @@ class Timeline(gtk.Table, Loggable, Zoomable):
             focus = self._temp_objects[0]
             self._move_context = MoveContext(self.timeline, focus,
                                              set(self._temp_objects[1:]))
-            self._move_temp_source(self.hadj.props.value + x, y)
-            self.selected = self._temp_objects
-            self._project.emit("selected-changed", set(self.selected))
-            self._move_context.finish()
-            self._temp_objects = []
-            self.added = 1
+            gobject.timeout_add(100, self._reallyRecreate, x, y)
 
     def _move_temp_source(self, x, y):
         x1, y1, x2, y2 = self._controls.get_allocation()
