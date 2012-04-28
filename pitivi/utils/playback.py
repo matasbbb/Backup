@@ -60,7 +60,6 @@ class Seeker(Signallable, Loggable):
         """
         Signallable.__init__(self)
         Loggable.__init__(self)
-
         self.timeout = timeout
         self.pending_seek_id = None
         self.position = None
@@ -70,7 +69,6 @@ class Seeker(Signallable, Loggable):
     def seek(self, position, format=gst.FORMAT_TIME, on_idle=False):
         self.format = format
         self.position = position
-
         if self.pending_seek_id is None:
             if on_idle:
                 gobject.idle_add(self._seekTimeoutCb)
@@ -80,6 +78,7 @@ class Seeker(Signallable, Loggable):
                     self._seekTimeoutCb)
 
     def seekRelative(self, time, on_idle=False):
+        self.currentState = gst.STATE_PAUSED
         if self.pending_seek_id is None:
             self._time = time
             if on_idle:
@@ -127,11 +126,14 @@ class Seeker(Signallable, Loggable):
     def setPosition(self, position):
         self.emit("position-changed", position)
 
-
 #-----------------------------------------------------------------------------#
 #                   Pipeline utils                                            #
-def togglePlayback(pipeline):
-    if int(pipeline.get_state()[1]) == int(gst.STATE_PLAYING):
+
+
+def togglePlayback(pipeline, previous_state):
+    seeker = Seeker()
+    pipeline.set_state(gst.STATE_PAUSED)
+    if int(previous_state) == int(gst.STATE_PLAYING):
         state = gst.STATE_PAUSED
     else:
         state = gst.STATE_PLAYING
@@ -141,5 +143,9 @@ def togglePlayback(pipeline):
         gst.error("Could no set state to %s")
         state = gst.STATE_NULL
         pipeline.set_state(state)
+    elif res == gst.STATE_CHANGE_ASYNC and state == gst.STATE_PLAYING:
+        pass
+        #Either stuff a hack here or find out why the change to STATE_PAUSED
+        #doesn't happen for every elements on certain occasions
 
     return state

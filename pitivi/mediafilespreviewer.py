@@ -54,6 +54,7 @@ class PreviewWidget(gtk.VBox, Loggable):
 
         #playbin for play pics
         self._unsurePlaybin()
+        self.currentState = gst.STATE_PAUSED
         bus = self.player.get_bus()
         bus.add_signal_watch()
         bus.connect('message', self._bus_message_cb)
@@ -75,7 +76,7 @@ class PreviewWidget(gtk.VBox, Loggable):
 
         # Gui elements:
         # Drawing area for video output
-        self.preview_video = ViewerWidget()
+        self.preview_video = ViewerWidget(self)
         self.preview_video.modify_bg(gtk.STATE_NORMAL, self.preview_video.style.black)
         self.pack_start(self.preview_video, expand=False)
 
@@ -316,6 +317,10 @@ class PreviewWidget(gtk.VBox, Loggable):
             self.is_playing = False
             err, dbg = message.parse_error()
             self.error("Error: %s " % err, dbg)
+        elif message.type == gst.MESSAGE_STATE_CHANGED:
+            prev, new, pending = message.parse_state_changed()
+            if message.src == self.player:
+                self.currentState = new
 
     def _update_position(self, *args):
         if self.is_playing:

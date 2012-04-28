@@ -139,7 +139,7 @@ class PitiviViewer(gtk.VBox, Loggable):
             bus.set_sync_handler(None)
             bus.set_sync_handler(self._elementMessageCb)
             self.pipeline.set_state(gst.STATE_PAUSED)
-            self.currentState = gst.STATE_PAUSED
+
             if position:
                 # Since the pipeline is async, the line below is a hack
                 # to force waiting indefinitely until the state has been changed
@@ -237,7 +237,7 @@ class PitiviViewer(gtk.VBox, Loggable):
         self.aframe = gtk.AspectFrame(xalign=0.5, yalign=1.0, ratio=4.0 / 3.0,
                                       obey_child=False)
 
-        self.internal = ViewerWidget(self.app.settings)
+        self.internal = ViewerWidget(self, self.app.settings)
         self.internal.init_transformation_events()
         self.internal.show()
         self.aframe.add(self.internal)
@@ -247,7 +247,7 @@ class PitiviViewer(gtk.VBox, Loggable):
         vbox = gtk.VBox()
         vbox.set_spacing(SPACING)
         self.external_window.add(vbox)
-        self.external = ViewerWidget(self.app.settings)
+        self.external = ViewerWidget(self, self.app.settings)
         vbox.pack_start(self.external)
         self.external_window.connect("delete-event", self._externalWindowDeleteCb)
         self.external_window.connect("configure-event", self._externalWindowConfigureCb)
@@ -414,13 +414,14 @@ class PitiviViewer(gtk.VBox, Loggable):
 
     def _jumpToTimecodeCb(self, widget):
         nanoseconds = widget.getWidgetValue()
+        self.currentState = gst.STATE_PAUSED
         self.seeker.seek(nanoseconds)
 
     ## public methods for controlling playback
 
     def togglePlayback(self):
         if self.pipeline:
-            state = togglePlayback(self.pipeline)
+            state = togglePlayback(self.pipeline, self.currentState)
             self.playing = (state == gst.STATE_PLAYING)
 
     def undock(self):
@@ -541,8 +542,8 @@ class PitiviViewer(gtk.VBox, Loggable):
         else:
             self.sink = None
             self.system.uninhibitScreensaver(self.INHIBIT_REASON)
-        self.internal._currentStateCb(self.pipeline, state)
         self.currentState = state
+        self.internal._currentStateCb(self.pipeline, state)
 
     def _elementMessageCb(self, unused_bus, message):
         """
@@ -888,7 +889,7 @@ class ViewerWidget(gtk.DrawingArea, Loggable):
 
     __gsignals__ = {}
 
-    def __init__(self, settings=None):
+    def __init__(self, instance, settings=None):
         gtk.DrawingArea.__init__(self)
         Loggable.__init__(self)
         self.seeker = Seeker()
@@ -900,6 +901,7 @@ class ViewerWidget(gtk.DrawingArea, Loggable):
         self.sink = None
         self.pixbuf = None
         self.pipeline = None
+        self.instance = instance
         self.transformation_properties = None
         for state in range(gtk.STATE_INSENSITIVE + 1):
             self.modify_bg(state, self.style.black)
@@ -1051,8 +1053,7 @@ class ViewerWidget(gtk.DrawingArea, Loggable):
                 cr.paint()
                 if self.box.area.width != self.pixbuf.get_width():
                     cr.restore()
-
-            if self.pipeline and self.pipeline.get_state()[1] == gst.STATE_PAUSED:
+            if self.pipeline and self.instance.currentState == gst.STATE_PAUSED:
                 self.box.draw(cr)
             cr.pop_group_to_source()
             cr.paint()
