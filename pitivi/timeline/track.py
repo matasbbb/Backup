@@ -191,12 +191,16 @@ class TrackObjectController(Controller):
         self._mousedown = Point(self._mousedown[0], 0)
 
     def drag_end(self, item, target, event):
+        if not self._view.movable:
+            return
         self.debug("Drag end")
         self._context.finish()
         self._context = None
         self._view.app.action_log.commit()
 
     def set_pos(self, item, pos):
+        if not self._view.movable:
+            return
         x, y = pos
         x = x + self._hadj.get_value()
 
@@ -322,6 +326,8 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
         _handle_enter_leave = True
 
         def drag_start(self, item, target, event):
+            if not self._view.movable:
+                return
             point = self.from_item_event(item, event)
             TrackObjectController.drag_start(self, item, target, event)
 
@@ -368,6 +374,7 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
         self.nameheight = 0
         self._element = None
         self._settings = None
+        self.movable = True
 
         self.bg = goocanvas.Rect(height=self.height, line_width=1)
 
@@ -619,6 +626,7 @@ class TrackTransition(TrackObject):
         for thing in (self.bg, self._selec_indic, self.namebg, self.name):
                 self.add_child(thing)
         instance.gui.trans_list.connect("transition-changed", self._changeTransitionCb)
+        self.movable = False
 
     def _setElement(self, element):
         if isinstance(element, ges.TrackVideoTransition):
