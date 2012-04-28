@@ -459,14 +459,10 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
         self._update()
 
     def _changeTransitionCb(self, unused_widget, transition):
-        try:
-            epic_win = self.element.set_transition_type(transition)
-            if not epic_win:
-                print "%s, \033[1m Y U NO WORK!?\033[0m" % transition
-            self._view.app.current.seeker.flush()
-        except AttributeError:
-            # TrackAudioTransition objects do not have a transition type
-            pass
+        if isinstance(self.element, ges.TrackVideoTransition):
+            self.element.set_transition_type(transition)
+            self.app.current.seeker.flush()
+            self.name.props.text = self.element.get_transition_type().value_nick
 
 ## settings signals
 
@@ -625,11 +621,8 @@ class TrackTransition(TrackObject):
         instance.gui.trans_list.connect("transition-changed", self._changeTransitionCb)
 
     def _setElement(self, element):
-        try:
+        if isinstance(element, ges.TrackVideoTransition):
             self.name.props.text = element.get_transition_type().value_nick
-        except AttributeError:
-            # TrackAudioTransition objects do not have a transition type
-            pass
 
     def _getColor(self):
         # Transitions are bright blue, independent of the user color settings
