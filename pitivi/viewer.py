@@ -414,13 +414,14 @@ class PitiviViewer(gtk.VBox, Loggable):
 
     def _jumpToTimecodeCb(self, widget):
         nanoseconds = widget.getWidgetValue()
+        self.currentState = gst.STATE_PAUSED
         self.seeker.seek(nanoseconds)
 
     ## public methods for controlling playback
 
     def togglePlayback(self):
         if self.pipeline:
-            state = togglePlayback(self.pipeline)
+            state = togglePlayback(self.pipeline, self.currentState)
             self.playing = (state == gst.STATE_PLAYING)
 
     def undock(self):
@@ -1003,6 +1004,7 @@ class ViewerWidget(gtk.DrawingArea, Loggable):
         self.pipeline = pipeline
         if state == gst.STATE_PAUSED:
             self._store_pixbuf()
+        self.currentState = state
         self.renderbox()
 
     def motion_notify_event(self, widget, event):
@@ -1059,7 +1061,6 @@ class ViewerWidget(gtk.DrawingArea, Loggable):
                 cr.paint()
                 if self.box.area.width != self.pixbuf.get_width():
                     cr.restore()
-
             if self.pipeline and self.pipeline.get_state()[1] == gst.STATE_PAUSED:
                 self.box.draw(cr)
             cr.pop_group_to_source()
