@@ -108,7 +108,7 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
 #        self.searchEntry.connect("focus-in-event", self.searchEntryActivateCb)
 #        self.searchEntry.connect("focus-out-event", self.searchEntryDesactvateCb)
 #        self.searchEntry.connect("icon-press", self.searchEntryIconClickedCb)
-        self.iconview.connect("button-release-event", self._buttonReleaseCb)
+        self.iconview.connect("item-activated", self._itemActivatedCb)
         self.iconview.connect("query-tooltip", self._queryTooltipCb)
 
         # Speed-up startup by only checking available transitions on idle
@@ -188,12 +188,11 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
                 icon = None
         return icon
 
-    def _buttonReleaseCb(self, view, event):
-        if event.button == 1:
-            transition_id = int(self.getSelectedItem())
-            transition = self.available_transitions.get(transition_id)
-            self.debug("New transition type selected: %s" % transition)
-            self.emit("transition-changed", transition)
+    def _itemActivatedCb(self, path, unused):
+        transition_id = int(self.getSelectedItem())
+        transition = self.available_transitions.get(transition_id)
+        self.debug("New transition type selected: %s" % transition)
+        self.emit("transition-changed", transition)
         return True
 
     def _queryTooltipCb(self, view, x, y, keyboard_mode, tooltip):
