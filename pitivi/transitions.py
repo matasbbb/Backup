@@ -52,6 +52,7 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
 
     __signals__ = {
         "transition-changed": ["transition_id"],
+        "border-value-changed": ["value"]
         }
 
     def __init__(self, instance, uiman):
@@ -77,6 +78,15 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
 #        self.searchEntry.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, "gtk-clear")
 #        hsearch.pack_start(searchStr, expand=False)
 #        hsearch.pack_end(self.searchEntry, expand=True)
+
+        self.borderhbox = gtk.HBox()
+        self.borderhbox.set_spacing(SPACING)
+        self.borderhbox.set_border_width(3)
+        border_str = gtk.Label(_("Border value :"))
+        self.borderScale = gtk.HScale()
+        self.borderScale.set_range(0, 2000000)
+        self.borderhbox.pack_start(self.borderScale, expand=True)
+        self.borderhbox.pack_start(border_str, expand=False)
 
         self.infobar = gtk.InfoBar()
         txtlabel = gtk.Label()
@@ -110,22 +120,28 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
 #        self.searchEntry.connect("icon-press", self.searchEntryIconClickedCb)
         self.iconview.connect("item-activated", self._itemActivatedCb)
         self.iconview.connect("query-tooltip", self._queryTooltipCb)
+        self.borderScale.connect("value-changed", self._borderValueChangedCb)
 
         # Speed-up startup by only checking available transitions on idle
         gobject.idle_add(self._loadAvailableTransitionsCb)
 
-#        self.pack_start(hsearch, expand=False)
+#        self.pack_start(hsearch, expand=False)1
         self.pack_start(self.infobar, expand=False)
         self.pack_end(self.iconview_scrollwin, expand=True)
+        self.pack_start(self.borderhbox, expand=False)
 
         #create the filterModel
         self.modelFilter = self.storemodel.filter_new()
 #        self.modelFilter.set_visible_func(self._setRowVisible, data=None)
         self.iconview.set_model(self.modelFilter)
         self.iconview_scrollwin.show_all()
+        self.borderhbox.hide()
 #        hsearch.show_all()
 
         self.deactivate()
+
+    def _borderValueChangedCb(self, range_changed):
+        self.emit("border-value-changed", range_changed.get_value())
 
     def _loadAvailableTransitionsCb(self):
         """
@@ -155,6 +171,10 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
         """
         Hide the infobar and make the transitions UI sensitive.
         """
+        if (transition.value_nick == "crossfade"):
+            self.borderhbox.hide()
+        else:
+            self.borderhbox.show_all()
         self.iconview.set_sensitive(True)
         self.infobar.hide()
         model = self.iconview.get_model()
@@ -192,6 +212,10 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
         transition_id = int(self.getSelectedItem())
         transition = self.available_transitions.get(transition_id)
         self.debug("New transition type selected: %s" % transition)
+        if (transition.value_nick == "crossfade"):
+            self.borderhbox.hide()
+        else:
+            self.borderhbox.show_all()
         self.emit("transition-changed", transition)
         return True
 

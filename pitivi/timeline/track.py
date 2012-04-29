@@ -130,6 +130,7 @@ class Selected (Signallable):
 
     def __init__(self):
         self._selected = False
+        self.movable = True
 
     def __nonzero__(self):
         """
@@ -237,6 +238,7 @@ class TrimHandle(View, goocanvas.Image, Loggable, Zoomable):
         self.app = instance
         self.element = element
         self.timeline = timeline
+        self.movable = True
         goocanvas.Image.__init__(self,
             pixbuf=TRIMBAR_PIXBUF,
             line_width=0,
@@ -471,6 +473,10 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
             self.app.current.seeker.flush()
             self.name.props.text = self.element.get_transition_type().value_nick
 
+    def _changeBorderValueCb(self, unused_widget, value):
+        if isinstance(self.element, ges.TrackVideoTransition):
+            self.element.set_border(int(value))
+
 ## settings signals
 
     def setSettings(self, settings):
@@ -557,13 +563,10 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
 
     def selectedChangedCb(self, element, selected):
         if element.selected:
-            if isinstance(self, TrackTransition):
-                try:
+            if isinstance(self.element, ges.TrackTransition):
+                if isinstance(self.element, ges.TrackVideoTransition):
                     trans = self.element.get_transition_type()
                     self.app.gui.trans_list.activate(trans)
-                except AttributeError:
-                    # TrackAudioTransition objects do not have a transition type
-                    self.app.gui.trans_list.deactivate()
             else:
                 self.app.gui.trans_list.deactivate()
                 self.app.gui.switchContextTab()
@@ -626,6 +629,7 @@ class TrackTransition(TrackObject):
         for thing in (self.bg, self._selec_indic, self.namebg, self.name):
                 self.add_child(thing)
         instance.gui.trans_list.connect("transition-changed", self._changeTransitionCb)
+        instance.gui.trans_list.connect("border-value-changed", self._changeBorderValueCb)
         self.movable = False
 
     def _setElement(self, element):
