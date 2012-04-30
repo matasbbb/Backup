@@ -48,6 +48,7 @@ from xml.sax.saxutils import escape
 
 from pitivi.configure import get_pixmap_dir
 from pitivi.settings import GlobalSettings
+from pitivi.keyframes import KeyframeEditor
 
 import pitivi.utils.ui as dnd
 from pitivi.utils.loggable import Loggable
@@ -770,14 +771,16 @@ PROPS_TO_IGNORE = ['name', 'qos', 'silent', 'message']
 
 
 class EffectsPropertiesManager:
-    def __init__(self, action_log):
+    def __init__(self, instance):
         self.cache_dict = {}
         self._current_effect_setting_ui = None
         self._current_element_values = {}
-        self.action_log = action_log
+        self.action_log = instance.action_log
+        self.instance = instance
         self._seeker = Seeker()
+        self.timeline_object = None
 
-    def getEffectConfigurationUI(self, effect):
+    def getEffectConfigurationUI(self, effect, timeline_object):
         """
             Permit to get a configuration GUI for the effect
             @param effect: The effect for which we want the configuration UI
@@ -791,13 +794,20 @@ class EffectsPropertiesManager:
                                      default_btn=True, use_element_props=True)
             nb_rows = effect_set_ui.get_children()[0].get_property('n-rows')
             effect_configuration_ui = gtk.ScrolledWindow()
-            effect_configuration_ui.add_with_viewport(effect_set_ui)
+            vbox = gtk.VBox()
+            keyframeButton = gtk.Button("Edit keyframes")
+            vbox.pack_start(keyframeButton, expand=False)
+            vbox.pack_start(effect_set_ui, expand=True)
+            effect_configuration_ui.add_with_viewport(vbox)
             effect_configuration_ui.set_policy(gtk.POLICY_AUTOMATIC,
                                                gtk.POLICY_AUTOMATIC)
             self.cache_dict[effect] = effect_configuration_ui
             self._connectAllWidgetCbs(effect_set_ui, effect)
             self._postConfiguration(effect, effect_set_ui)
 
+            keyframeButton.connect("clicked", self._openKeyframeEditorCb)
+
+        self.timeline_object = timeline_object
         effect_set_ui = self._getUiToSetEffect(effect)
 
         self._current_effect_setting_ui = effect_set_ui
@@ -822,7 +832,7 @@ class EffectsPropertiesManager:
     def _getUiToSetEffect(self, effect):
         """ Permit to get the widget to set the effect and not its container """
         if type(self.cache_dict[effect]) is gtk.ScrolledWindow:
-            effect_set_ui = self.cache_dict[effect].get_children()[0].get_children()[0]
+            effect_set_ui = self.cache_dict[effect].get_children()[0].get_children()[0].get_children()[1]
         else:
             effect_set_ui = self.cache_dict[effect]
 
@@ -848,3 +858,6 @@ class EffectsPropertiesManager:
             self.action_log.commit()
             self._seeker.flush()
             self._current_element_values[prop.name] = value
+
+    def _openKeyframeEditorCb(self, unused_widget):
+        editor = KeyframeEditor(self._current_effect_setting_ui.element, self.timeline_object, self.instance)

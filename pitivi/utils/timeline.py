@@ -390,6 +390,8 @@ class Controller(Loggable):
 ## internal callbacks
 
     def _event_common(self, item, target, event):
+        if not item.get_canvas().app:
+            return
         if not self._canvas:
             self._canvas = item.get_canvas()
             # might there be a better way to do this?

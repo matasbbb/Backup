@@ -25,6 +25,7 @@ Custom canvas item for track object keyframe curves."""
 import goocanvas
 import gobject
 import gtk
+import ges
 
 from pitivi.utils.receiver import receiver, handler
 from pitivi.utils.timeline import View, Controller, Zoomable
@@ -54,7 +55,7 @@ CURVE_STROKE_WIDTH = 2.0
 HAND = gtk.gdk.Cursor(gtk.gdk.HAND2)
 
 
-class Curve(goocanvas.ItemSimple, goocanvas.Item, View, Zoomable):
+class Curve(goocanvas.ItemSimple, goocanvas.Item, Zoomable):
 
     __gtype_name__ = 'Curve'
 
@@ -133,14 +134,14 @@ class Curve(goocanvas.ItemSimple, goocanvas.Item, View, Zoomable):
     def __init__(self, instance, element, interpolator, height=LAYER_HEIGHT_EXPANDED,
         **kwargs):
         super(Curve, self).__init__(**kwargs)
-        View.__init__(self)
+        #View.__init__(self, instance, ges.EDIT_MODE_TRIM)
         Zoomable.__init__(self)
         self.app = instance
         self.keyframes = {}
         self.height = float(height)
-        self.element = element
+#        self.element = element
         self.props.pointer_events = goocanvas.EVENTS_STROKE
-        self.interpolator = interpolator
+#        self.interpolator = interpolator
         self._focused_kf = None
         self.normal()
         self.set_simple_transform(0, -KW_LABEL_Y_OVERFLOW, 1.0, 0)
@@ -163,7 +164,7 @@ class Curve(goocanvas.ItemSimple, goocanvas.Item, View, Zoomable):
     element = receiver()
 
     @handler(element, "in-point-changed")
-    @handler(element, "media-duration-changed")
+    @handler(element, "duration-changed")
     def _media_props_changed(self, obj, unused_start_duration):
         self.changed(True)
 

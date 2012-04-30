@@ -92,7 +92,7 @@ class ClipProperties(gtk.ScrolledWindow, Loggable):
         vbox.set_homogeneous(False)
         vp.add(vbox)
 
-        self.effect_properties_handling = EffectsPropertiesManager(instance.action_log)
+        self.effect_properties_handling = EffectsPropertiesManager(instance)
 
         self.effect_expander = EffectProperties(instance,
                 self.effect_properties_handling, self)
@@ -494,7 +494,7 @@ class EffectProperties(gtk.Expander, gtk.HBox):
                     self._vcontent.remove(widget)
 
             element = track_effect
-            ui = self.effect_props_handling.getEffectConfigurationUI(element)
+            ui = self.effect_props_handling.getEffectConfigurationUI(element, self.timeline_objects[0])
 
             self._effect_config_ui = ui
             if self._effect_config_ui:
