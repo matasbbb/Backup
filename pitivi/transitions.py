@@ -85,8 +85,8 @@ class TransitionsListWidget(Signallable, gtk.VBox, Loggable):
         border_str = gtk.Label(_("Border value :"))
         self.borderScale = gtk.HScale()
         self.borderScale.set_range(0, 2000000)
-        self.borderhbox.pack_start(self.borderScale, expand=True)
         self.borderhbox.pack_start(border_str, expand=False)
+        self.borderhbox.pack_start(self.borderScale, expand=True)
 
         self.infobar = gtk.InfoBar()
         txtlabel = gtk.Label()

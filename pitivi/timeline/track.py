@@ -468,10 +468,10 @@ class TrackObject(View, goocanvas.Group, Zoomable, Loggable):
         self._update()
 
     def _changeTransitionCb(self, unused_widget, transition):
-        if isinstance(self.element, ges.TrackVideoTransition):
+        if isinstance(self.element, ges.TrackVideoTransition) and self.element.selected.getSelected():
             self.element.set_transition_type(transition)
             self.app.current.seeker.flush()
-            self.name.props.text = self.element.get_transition_type().value_nick
+            self.name.props.text = transition.value_nick
 
     def _changeBorderValueCb(self, unused_widget, value):
         if isinstance(self.element, ges.TrackVideoTransition):
@@ -634,7 +634,7 @@ class TrackTransition(TrackObject):
 
     def _setElement(self, element):
         if isinstance(element, ges.TrackVideoTransition):
-            self.name.props.text = element.get_transition_type().value_nick
+            self.name.props.text = "crossfade"
 
     def _getColor(self):
         # Transitions are bright blue, independent of the user color settings
