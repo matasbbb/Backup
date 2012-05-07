@@ -98,6 +98,7 @@ class Curve(goocanvas.ItemSimple, goocanvas.Item, Zoomable):
             self._view.setFocusedKf(self._kf)
 
         def double_click(self, pos):
+            print "lol"
             interpolator = self._view.interpolator
             kf = self._view.findKeyframe(pos)
             if kf is None:
@@ -131,20 +132,21 @@ class Curve(goocanvas.ItemSimple, goocanvas.Item, Zoomable):
         def leave(self, item, target):
             self._view.normal()
 
-    def __init__(self, instance, element, interpolator, height=LAYER_HEIGHT_EXPANDED,
+    def __init__(self, instance, element, interpolator, propname, height=LAYER_HEIGHT_EXPANDED,
         **kwargs):
         super(Curve, self).__init__(**kwargs)
-        #View.__init__(self, instance, ges.EDIT_MODE_TRIM)
         Zoomable.__init__(self)
         self.app = instance
         self.keyframes = {}
         self.height = float(height)
-#        self.element = element
+        self.element = element
         self.props.pointer_events = goocanvas.EVENTS_STROKE
-#        self.interpolator = interpolator
+        self.interpolator = interpolator
         self._focused_kf = None
         self.normal()
         self.set_simple_transform(0, -KW_LABEL_Y_OVERFLOW, 1.0, 0)
+        self.propname = propname
+        self._controller = self.Controller(instance)
 
 ## properties
 
@@ -163,30 +165,30 @@ class Curve(goocanvas.ItemSimple, goocanvas.Item, Zoomable):
 
     element = receiver()
 
-    @handler(element, "in-point-changed")
-    @handler(element, "duration-changed")
+    @handler(element, "notify::in-point")
+    @handler(element, "notify::duration")
     def _media_props_changed(self, obj, unused_start_duration):
         self.changed(True)
 
 ## interpolator callbacks
 
-    interpolator = receiver()
+#    interpolator = receiver()
+#
+ #   @handler(interpolator, "keyframe-removed")
+  #  def keyframeRemoved(self, unused_interpolator, keyframe, old_value=None):
+   #     if keyframe in self.keyframes:
+    #        del self.keyframes[keyframe]
+     #       if keyframe is self._focused_kf:
+      #          self._focused_kf = None
+       # self.changed(False)
 
-    @handler(interpolator, "keyframe-removed")
-    def keyframeRemoved(self, unused_interpolator, keyframe, old_value=None):
-        if keyframe in self.keyframes:
-            del self.keyframes[keyframe]
-            if keyframe is self._focused_kf:
-                self._focused_kf = None
-        self.changed(False)
+#    @handler(interpolator, "keyframe-added")
+ #   def curveChanged(self, unused_interpolator, unused_keyframe):
+  #      self.changed(False)
 
-    @handler(interpolator, "keyframe-added")
-    def curveChanged(self, unused_interpolator, unused_keyframe):
-        self.changed(False)
-
-    @handler(interpolator, "keyframe-moved")
-    def curveChanged(self, unused_interpolator, unused_keyframe, old_value=None):
-        self.changed(False)
+#    @handler(interpolator, "keyframe-moved")
+ #   def curveChanged(self, unused_interpolator, unused_keyframe, old_value=None):
+  #      self.changed(False)
 
 ## Zoomable interface overries
 
@@ -197,11 +199,10 @@ class Curve(goocanvas.ItemSimple, goocanvas.Item, Zoomable):
 
     def do_simple_update(self, cr):
         cr.identity_matrix()
-        if self.element.factory:
-            self.visible_width = self.nsToPixel(self.element.duration)
-            self.bounds = goocanvas.Bounds(0, 0,
-                self.visible_width + KW_LABEL_X_OVERFLOW,
-                self.height + KW_LABEL_Y_OVERFLOW)
+        self.visible_width = self.nsToPixel(self.element.props.duration)
+        self.bounds = goocanvas.Bounds(0, 0,
+                                       self.visible_width + KW_LABEL_X_OVERFLOW,
+                                       self.height + KW_LABEL_Y_OVERFLOW)
 
     def _getKeyframeXY(self, kf):
         interp = self.interpolator
@@ -279,14 +280,14 @@ class Curve(goocanvas.ItemSimple, goocanvas.Item, Zoomable):
     def make_curve(self, cr):
         if not self.interpolator:
             return
-        iterator = self.interpolator.getVisibleKeyframes()
-        cr.move_to(*self._getKeyframeXY(iterator.next()))
-        for kf in iterator:
+        keyframes = self.interpolator.get_keyframes(self.propname)
+        cr.line_to(0, 20)
+        for kf in keyframes:
             cr.line_to(*self._getKeyframeXY(kf))
-        cr.line_to(*self._getKeyframeXY(self.interpolator.end))
+        cr.line_to(600, 20)
 
     def make_keyframes(self, cr):
-        for kf in self.interpolator.getVisibleKeyframes():
+        for kf in self.interpolator.get_keyframes(self.propname):
             self._controlPoint(cr, kf)
 
     def do_simple_is_item_at(self, x, y, cr, pointer_event):

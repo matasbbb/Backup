@@ -12,7 +12,7 @@ from pitivi.timeline.curve import Curve
 
 
 class DummyTrackSource(goocanvas.Group):
-    def __init__(self, instance, element, interp):
+    def __init__(self, instance, element, interp, name):
         goocanvas.Group.__init__(self)
         self.bg = goocanvas.Rect(height=100, line_width=1)
         self.set_simple_transform(0, 0, 1, 0)
@@ -22,20 +22,23 @@ class DummyTrackSource(goocanvas.Group):
         self.bg.props.height = 100
         self.bg.props.fill_pattern = pattern
         self.add_child(self.bg)
-        curve = Curve(instance, element, interp)
+        curve = Curve(instance, element, interp, name)
+        self.add_child(curve)
 
 
 class KeyframeDisplay(goocanvas.Canvas, Zoomable):
-    def __init__(self, timeline_object, instance, effect):
+    def __init__(self, timeline_object, instance, effect, name):
         goocanvas.Canvas.__init__(self)
         Zoomable.__init__(self)
+        self.controller = ges.Controller()
+        self.controller.set_controlled(effect)
         self.app = None
         self.get_root_item().set_simple_transform(0, 2.0, 1.0, 0)
         self.set_bounds(0, 0, 600, 600)
         for elem in timeline_object.get_track_objects():
             if isinstance(elem, ges.TrackSource):
                 break
-        w = DummyTrackSource(instance, effect, None)
+        w = DummyTrackSource(instance, effect, self.controller, name)
         self.get_root_item().add_child(w)
 
 
@@ -49,6 +52,7 @@ class KeyframeEditor():
         self.dialog.run()
 
     def _createUI(self):
+        name = None
         builder = gtk.Builder()
         builder.add_from_file(os.path.join(get_ui_dir(), "keyframes.ui"))
 
@@ -58,8 +62,10 @@ class KeyframeEditor():
 
         self.dialog.set_default_size(800, 600)
         for prop in self.element.list_children_properties():
+            if not name:
+                name = prop.name
             self.storemodel.append([prop.name])
             #self._current_element_values[prop.name] = element.get_child_property(prop.name)
-        display = KeyframeDisplay(self.tl_object, self.instance, self.element)
+        display = KeyframeDisplay(self.tl_object, self.instance, self.element, name)
         box.pack_start(display, expand=True)
         display.show()
