@@ -557,7 +557,7 @@ class MediaLibraryWidget(gtk.VBox, Loggable):
     def _insertEndCb(self, unused_action):
         sources = []
         for uri in self.getSelectedItems():
-            sources.append(ges.TimelineFileSource(uri))
+            sources.append(ges.TimelineFileSource(uri=uri))
 
         self.app.gui.timeline_ui.insertEnd(sources)
 
