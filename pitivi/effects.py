@@ -568,8 +568,42 @@ class EffectListWidget(gtk.VBox, Loggable):
                 event)
             self._dragStarted = True
 
-        if chain_up:
-            gtk.TreeView.do_button_press_event(view, event)
+        if self.effect_view is SHOW_TREEVIEW:
+            if chain_up:
+                gtk.TreeView.do_button_press_event(view, event)
+            else:
+                view.grab_focus()
+
+        return False
+
+    def _queryTooltipCb(self, view, x, y, keyboard_mode, tooltip):
+        is_row, x, y, model, path, iter_ = view.get_tooltip_context(x, y, keyboard_mode)
+
+        if not is_row:
+            return False
+
+        # Gtk.TreePath supports __getitem__ only after 3.3.4:
+        #path = path.get_indices()
+
+        if self.effect_view is SHOW_TREEVIEW or\
+                    self._effect_type_ref == AUDIO_EFFECT:
+            view.set_tooltip_row(tooltip, path)
+        elif self.effect_view is SHOW_ICONVIEW and\
+                     self._effect_type_ref == VIDEO_EFFECT:
+            view.set_tooltip_item(tooltip, path)
+        name = self.modelFilter.get_value(iter_, COL_ELEMENT_NAME)
+        if self._current_effect_name != name:
+            self._current_effect_name = name
+            icon = self.modelFilter.get_value(iter_, COL_ICON)
+            self._current_tooltip_icon = icon
+
+        longname = escape(self.modelFilter.get_value(iter_,
+                COL_NAME_TEXT).strip())
+        description = escape(self.modelFilter.get_value(iter_,
+                COL_DESC_TEXT))
+        txt = "<b>%s:</b>\n%s" % (longname, description)
+        if self.effect_view == SHOW_ICONVIEW:
+            tooltip.set_icon(None)
         else:
             view.grab_focus()
 
