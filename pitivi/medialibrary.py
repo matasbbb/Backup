@@ -1146,7 +1146,8 @@ class MediaLibraryWidget(gtk.VBox, Loggable):
         if treeview.drag_check_threshold(self._dragX, self._dragY,
             int(event.x), int(event.y)):
             context = treeview.drag_begin(
-                [dnd.URI_TARGET_ENTRY, dnd.FILESOURCE_TARGET_ENTRY],
+                gtk.TargetList.new([dnd.URI_TARGET_ENTRY,
+                                    dnd.FILESOURCE_TARGET_ENTRY]),
                 gtk.gdk.ACTION_COPY,
                 self._dragButton,
                 event)
@@ -1191,7 +1192,8 @@ class MediaLibraryWidget(gtk.VBox, Loggable):
         if iconview.drag_check_threshold(self._dragX, self._dragY,
             int(event.x), int(event.y)):
             context = iconview.drag_begin(
-                [dnd.URI_TARGET_ENTRY, dnd.FILESOURCE_TARGET_ENTRY],
+                gtk.TargetList([dnd.URI_TARGET_ENTRY,
+                                dnd.FILESOURCE_TARGET_ENTRY]),
                 gtk.gdk.ACTION_COPY,
                 self._dragButton,
                 event)
@@ -1310,7 +1312,7 @@ class MediaLibraryWidget(gtk.VBox, Loggable):
             context.drag_abort(int(time.time()))
         else:
             row = self.modelFilter[paths[0]]
-            context.set_icon_pixbuf(row[COL_ICON], 0, 0)
+            gtk.drag_set_icon_pixbuf(context, row[COL_ICON], 0, 0)
 
     def getSelectedPaths(self):
         """ Returns a list of selected treeview or iconview items """
@@ -1340,6 +1342,6 @@ class MediaLibraryWidget(gtk.VBox, Loggable):
         if len(uris) < 1:
             return
         selection.set(selection.target, 8, '\n'.join(uris))
-        context.set_icon_pixbuf(INVISIBLE, 0, 0)
+        gtk.drag_set_icon_pixbuf(context, INVISIBLE, 0, 0)
 
 gobject.type_register(MediaLibraryWidget)
