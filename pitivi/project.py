@@ -284,7 +284,7 @@ class ProjectManager(Signallable, Loggable):
                     self.debug('Saved project "%s"' % uri)
                 else:
                     self.debug('Saved backup "%s"' % uri)
-        return saved
+            return saved
 
     def exportProject(self, project, uri):
         """
