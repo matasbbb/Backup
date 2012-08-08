@@ -182,7 +182,7 @@ class SimplePipeline(Loggable, Signallable):
         self._bus.disconnect_by_func(self._busMessageCb)
         self._bus.remove_signal_watch()
 
-        self._pipeline.setState(gst.STATE_NULL)
+        self.setState(gst.STATE_NULL)
         self._bus = None
 
     def flushSeek(self):
@@ -445,7 +445,7 @@ class SimplePipeline(Loggable, Signallable):
         return gst.BUS_PASS
 
 
-class Pipeline(ges.TimelinePipeline, SimplePipeline):
+class Pipeline(SimplePipeline):
     """
     Helper to handle ges.TimelinePipeline through the SimplePipeline API
     and handle the Seeker properly
@@ -472,8 +472,8 @@ class Pipeline(ges.TimelinePipeline, SimplePipeline):
                         (gobject.TYPE_PYOBJECT,))}
 
     def __init__(self, pipeline=None):
-        ges.TimelinePipeline.__init__(self)
-        SimplePipeline.__init__(self, self)
+        self.pipe = ges.TimelinePipeline()
+        SimplePipeline.__init__(self, self.pipe)
 
         self._seeker = Seeker()
         self._seeker.connect("seek", self._seekCb)
