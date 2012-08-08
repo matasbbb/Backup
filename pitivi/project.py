@@ -261,14 +261,20 @@ class ProjectManager(Signallable, Loggable):
             # Otherwise, subsequent saves will be to the old uri.
             if not backup:
                 project.uri = uri
-        if uri is None or not ges.formatter_can_save_uri(uri):
+        if uri is None or not formatter.can_save_uri(uri):
             self.emit("save-project-failed", project, uri)
             return
 
         # FIXME Using query_exist is not the best thing to do, but makes
         # the trick for now
-        file = gio.File(uri)
-        if overwrite or not file.query_exist():
+        #file = gio.File(uri=uri)
+        fileExists = False
+        try:
+            with open(uri) as f:
+                pass
+        except IOError as e:
+            fileExists = True
+        if overwrite or not fileExists:
             formatter.set_sources(project.medialibrary.getSources())
             saved = formatter.save_to_uri(project.timeline, uri)
             if saved:
@@ -278,7 +284,7 @@ class ProjectManager(Signallable, Loggable):
                     self.debug('Saved project "%s"' % uri)
                 else:
                     self.debug('Saved backup "%s"' % uri)
-            return saved
+        return saved
 
     def exportProject(self, project, uri):
         """
